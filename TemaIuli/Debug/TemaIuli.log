@@ -1,0 +1,5 @@
+﻿  TemaIuli.cpp
+C:\Users\miuta\Source\Repos\TemaIuli\TemaIuli\TemaIuli.cpp(181,19): warning C4156: deletion of an array expression without using the array form of 'delete'; array form substituted
+C:\Users\miuta\Source\Repos\TemaIuli\TemaIuli\TemaIuli.cpp(181,19): warning C4154: deletion of an array expression; conversion to pointer supplied
+C:\Users\miuta\Source\Repos\TemaIuli\TemaIuli\TemaIuli.cpp(176,10): warning C4101: 'test': unreferenced local variable
+  TemaIuli.vcxproj -> C:\Users\miuta\Source\Repos\TemaIuli\Debug\TemaIuli.exe
