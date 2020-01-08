@@ -5,7 +5,13 @@
 #include "TemaIuli.h"
 #include <Windows.h>
 #include <Commdlg.h>
+#include <iostream>
+#include <stdlib.h>
 
+struct ProcessInfo {
+    DWORD processID;
+    BOOL exitCode;
+};
 
 #define MAX_LOADSTRING 100
 #define ID_BTNHI 0
@@ -21,6 +27,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -128,7 +135,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 //
 
-VOID startup(LPCTSTR lpApplicationName, LPWSTR path)
+
+ProcessInfo startup(LPCTSTR lpApplicationName, LPWSTR path)
 {
     // additional information
     STARTUPINFO si;
@@ -151,14 +159,23 @@ VOID startup(LPCTSTR lpApplicationName, LPWSTR path)
         &si,            // Pointer to STARTUPINFO structure
         &pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
     );
+    WaitForSingleObject(pi.hProcess, INFINITE);
+    LPDWORD exitCode = 0;
+    //MessageBox(NULL, pi.dwProcessId, L"Process ID", MB_OK);
+    BOOL aux = GetExitCodeProcess(pi.hProcess, (LPDWORD)&exitCode);
+    ProcessInfo systemInfo;
+    systemInfo.processID = pi.dwProcessId;
+    systemInfo.exitCode = aux;
     // Close process and thread handles. 
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
+
+    return systemInfo;
 }
 
-void OpenFile()
+ProcessInfo OpenFile()
 {
-    char szFile[100];
+    char* szFile = new char[100];
     OPENFILENAME ofn;
     // open a file name
     ZeroMemory(&ofn, sizeof(ofn));
@@ -173,12 +190,9 @@ void OpenFile()
     ofn.nMaxFileTitle = 0;
     ofn.lpstrInitialDir = NULL;
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
-    char test[100];
     GetOpenFileName(&ofn);
-    startup(ofn.lpTemplateName, ofn.lpstrFile);
-    //OpenFile(ofn.lpstrFile,(LPOFSTRUCT)test, (UINT)1);
-    MessageBox(NULL, ofn.lpstrFile, L"File Name", MB_OK);
     delete(szFile);
+    return startup(ofn.lpTemplateName, ofn.lpstrFile);
 }
 
 
@@ -200,7 +214,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DestroyWindow(hWnd);
                 break;
             case ID_BTNHI:
-                OpenFile();
+                ProcessInfo systemInfo = OpenFile();
+                WCHAR szTest[10]; // WCHAR is the same as wchar_t
+                // swprintf_s is the same as sprintf_s for wide characters
+                swprintf_s(szTest, 10, L"%d", systemInfo.processID); // use L"" prefix for wide chars
+                MessageBox(hWnd, szTest, L"Process ID", (UINT)1);
+                swprintf_s(szTest, 10, L"%d", systemInfo.exitCode);
+                MessageBox(hWnd, szTest, L"Exit Code", (UINT)1);
                 break;
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
@@ -221,18 +241,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             NULL            
             );
         }
-                  CreateWindow(L"EDIT",
-                      L"",
-                      WS_VISIBLE | WS_CHILD | ES_MULTILINE | WS_BORDER | ES_AUTOVSCROLL,
-                      10,
-                      50,
-                      400,
-                      300,
-                      hWnd,
-                      NULL,
-                      NULL,
-                      NULL
-                      );
         break;
     case WM_PAINT:
         {
